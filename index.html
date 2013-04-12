@@ -139,17 +139,26 @@
                             {{#each s in supermarkets}}
                                 <div class="controls">
                                     <div class="input-append">
-                                      {{view Ember.TextField valueBinding="s.name" classNames="input-small"}}
-                                      {{view Ember.TextField valueBinding="s.lat" classNames="input-small middleinput"}}
-                                      {{view Ember.TextField valueBinding="s.lng" classNames="input-small middleinput"}}
-                                      <button class="btn btn-danger" type="button"{{action remove s}}><i class="icon-remove icon-white"></i></button>
+                                      {{view Ember.TextField valueBinding="s.name" classNames="input-mini"}}
+                                      {{view Ember.TextField valueBinding="s.lat" classNames="input-mini middleinput"}}
+                                      {{view Ember.TextField valueBinding="s.lng" classNames="input-mini middleinput"}}
+                                      <a href="#" {{bindAttr class="s.draggable::active :btn"}} type="button" {{action lock s}}
+                                        data-toggle="tooltip" title="Enable or disable dragging">
+                                          <i {{bindAttr class="s.draggable:icon-lock:icon-unlock"}} ></i>
+                                      </a>
+                                      <a href="#" class="btn ttip" {{action centerMarker s}}
+                                        data-toggle="tooltip" title="Center map on this marker">
+                                          <i  class="icon-screenshot"></i>
+                                      </a>
+                                      <button class="btn btn-danger" type="button"{{action remove s}}
+                                        data-toggle="tooltip" title="Delete marker"><i  class="icon-remove icon-white"></i></button>
                                     </div>
                                 </div>
                             {{else}}
                                 <div class="controls">
                                     <div class="alert alert-info">
                                         <button type="button" class="close" data-dismiss="alert">&times;</button>
-                                        No markers added.
+                                        No markers. Add one!
                                     </div
                                 </div>
                             {{/each}}

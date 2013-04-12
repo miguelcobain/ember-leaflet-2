@@ -1,3 +1,7 @@
+$('body').tooltip({
+    selector: 'a[rel="tooltip"], [data-toggle="tooltip"]'
+});
+
 App = Ember.Application.create({
     rootElement: "#application"
 });
@@ -15,9 +19,19 @@ App.IndexRoute = Ember.Route.extend({
 });
 
 App.Supermarket = Ember.Object.extend({
+    highlighted : false,
+    draggable : true,
     popup : function(){
         return this.get('name');
     }.property('name')
+});
+
+App.IndexView = Ember.View.extend({
+    didInsertElement : function(){
+        $('body').tooltip({
+            selector: 'a[rel="tooltip"], [data-toggle="tooltip"]'
+        });
+    }
 });
 
 App.IndexController = Ember.ObjectController.extend({
@@ -62,5 +76,20 @@ App.IndexController = Ember.ObjectController.extend({
             lat: this.get('center.lat'),
             lng: this.get('center.lng')
         }));  
+    },
+    highlight: function(s){
+        s.toggleProperty('highlighted');
+    },
+    lock: function(s){
+        s.toggleProperty('draggable');
+    },
+    centerMarker: function(s){
+        /*var center = this.get('center');
+        center.set('lat',s.get('lat'));
+        center.set('lng',s.get('lng'));*/
+        this.set('center',Ember.Object.create({
+            lat:s.get('lat'),
+            lng:s.get('lng')
+        }))
     }
 });
