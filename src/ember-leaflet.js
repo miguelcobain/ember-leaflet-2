@@ -77,6 +77,8 @@ Ember.LeafletView = Ember.View.extend({
                 object.addObserver('lat', this, 'markersPositionDidChange');
                 object.addObserver('lng', this, 'markersPositionDidChange');
                 object.addObserver('popup', this, 'markersPopupDidChange');
+                object.addObserver('highlight', this, 'markersHighlightDidChange');
+                object.addObserver('draggable', this, 'markersDraggableDidChange');
             }, this);
         }
     },
@@ -90,6 +92,17 @@ Ember.LeafletView = Ember.View.extend({
         var marker = leafletMarkers.get(sender);
         marker.closePopup();
         marker.bindPopup(sender.get('popup'));
+    },
+    markersHighlightDidChange : function(sender, key){
+        
+    },
+    markersDraggableDidChange : function(sender, key){
+        var leafletMarkers = this.get('leafletMarkers');
+        var marker = leafletMarkers.get(sender);
+        if(sender.get('draggable'))
+            marker.dragging.enable();
+        else
+            marker.dragging.disable();
     },
     init : function(){
         this._super();
