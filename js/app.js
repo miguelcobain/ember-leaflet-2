@@ -19,7 +19,7 @@ App.IndexRoute = Ember.Route.extend({
 });
 
 App.Supermarket = Ember.Object.extend({
-    highlighted : false,
+    highlight : false,
     draggable : true,
     popup : function(){
         return this.get('name');
@@ -78,10 +78,12 @@ App.IndexController = Ember.ObjectController.extend({
         }));  
     },
     highlight: function(s){
-        s.toggleProperty('highlighted');
+        s.toggleProperty('highlight');
     },
     lock: function(s){
+        this.highlight(s);
         s.toggleProperty('draggable');
+        
     },
     centerMarker: function(s){
         /*var center = this.get('center');
