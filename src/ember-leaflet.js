@@ -93,8 +93,17 @@ Ember.LeafletView = Ember.View.extend({
         marker.closePopup();
         marker.bindPopup(sender.get('popup'));
     },
+    // Default normal icon
+    normalIcon : new L.Icon.Default(),
+    // Default highlight icon
+    highlightIcon : new L.Icon.Default({iconUrl: 'img/marker-icon-highlight.png'}),
     markersHighlightDidChange : function(sender, key){
-        
+        var leafletMarkers = this.get('leafletMarkers');
+        var marker = leafletMarkers.get(sender);
+        if(sender.get('highlight'))
+            marker.setIcon(this.get('highlightIcon'));
+        else
+            marker.setIcon(this.get('normalIcon'));
     },
     markersDraggableDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
