@@ -74,7 +74,8 @@ App.IndexController = Ember.ObjectController.extend({
     add: function(){
         this.get('supermarkets').pushObject(App.Supermarket.create({
             lat: this.get('center.lat'),
-            lng: this.get('center.lng')
+            lng: this.get('center.lng'),
+            name : "New Marker"
         }));  
     },
     highlight: function(s){
