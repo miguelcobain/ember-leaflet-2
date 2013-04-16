@@ -1,7 +1,7 @@
 # Ember Leaflet #
 ## Ember and Leaflet tight integration for rich map web application development. ##
 
-Homepage: http://miguelcobain.github.io/ember-leaflet/
+Homepage and demo: http://miguelcobain.github.io/ember-leaflet/
 
 ### Bindings ###
 Essencially EmberLeaflet is a wrapper on top of Leaflet that exposes Ember properties.

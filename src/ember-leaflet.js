@@ -43,9 +43,18 @@ Ember.LeafletView = Ember.View.extend({
         console.log('centerDidChange', 'center to ' + [center.get('lat'), center.get('lng')]);
     }.observes('center.lat','center.lng'),
 
+    
+    // Real markers array
     markers : Ember.A(),
+    // Markers ArrayProxy to better control notifications and to allow 
     markersProxy : Ember.ArrayProxy.create(),
+    // Map that maps Ember objects to Leaflet marker objects
     leafletMarkers : Ember.Map.create(),
+    // Default overridable location property path
+    latPath:'lat',
+    lngPath:'lng',
+    // Default overridable popup content property path
+    popupPath:'popup',
     arrayWillChange : function(array, start, removeCount, addCount) {
         if (removeCount>0) {
             var leafletMarkers = this.get('leafletMarkers');
@@ -63,20 +72,22 @@ Ember.LeafletView = Ember.View.extend({
         if(addCount>0){
             var leafletMarkers = this.get('leafletMarkers');
             var map = this.get('map');
+            var latPath = this.get('latPath');var lngPath = this.get('lngPath');var popupPath = this.get('popupPath');
+            
             var addedObjects = array.slice(start, start + addCount);
             addedObjects.forEach(function(object, index){
-                var marker = L.marker(new L.LatLng(object.get('lat'), object.get('lng')),{draggable:true});
+                var marker = L.marker(new L.LatLng(object.get(latPath), object.get(lngPath)),{draggable:true});
                 marker.on('drag', function(e) {
                     var latlng = e.target.getLatLng();
-                    object.set('lat',latlng.lat);
-                    object.set('lng',latlng.lng);
+                    object.set(latPath,latlng.lat);
+                    object.set(lngPath,latlng.lng);
                 });
-                marker.bindPopup(object.get('popup'));
+                marker.bindPopup(object.get(popupPath));
                 marker.addTo(map);
                 leafletMarkers.set(object,marker);
-                object.addObserver('lat', this, 'markersPositionDidChange');
-                object.addObserver('lng', this, 'markersPositionDidChange');
-                object.addObserver('popup', this, 'markersPopupDidChange');
+                object.addObserver(latPath, this, 'markersPositionDidChange');
+                object.addObserver(lngPath, this, 'markersPositionDidChange');
+                object.addObserver(popupPath, this, 'markersPopupDidChange');
                 object.addObserver('highlight', this, 'markersHighlightDidChange');
                 object.addObserver('draggable', this, 'markersDraggableDidChange');
             }, this);
@@ -84,14 +95,16 @@ Ember.LeafletView = Ember.View.extend({
     },
     markersPositionDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
+        var latPath = this.get('latPath');var lngPath = this.get('lngPath');
         var marker = leafletMarkers.get(sender);
-        marker.setLatLng([sender.get('lat'),sender.get('lng')]);
+        marker.setLatLng([sender.get(latPath),sender.get(lngPath)]);
     },
     markersPopupDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
         var marker = leafletMarkers.get(sender);
+        var popupPath = this.get('popupPath');
         marker.closePopup();
-        marker.bindPopup(sender.get('popup'));
+        marker.bindPopup(sender.get(popupPath));
     },
     // Default normal icon
     normalIcon : new L.Icon.Default(),
