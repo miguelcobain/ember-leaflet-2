@@ -97,7 +97,11 @@
 
         <script type="text/x-handlebars" data-template-name="index">
             <h3>Leaflet map <small>Zoom, Pan the map or drag the markers!</small></h3>
-            {{view Ember.LeafletView zoomLevelBinding="zoom" centerBinding="center" markersBinding="supermarkets"}}
+            {{view Ember.LeafletView
+                zoomLevelBinding="zoom"
+                centerBinding="center"
+                markersBinding="supermarkets"
+                latPath="location.lat" lngPath="location.lng" }}
             <h3>Ember controls <small>Change the values and check the map above!</small></h3>
             <div class="row-fluid">
                 <div class="span6">
@@ -140,8 +144,8 @@
                                 <div class="controls">
                                     <div class="input-append">
                                       {{view Ember.TextField valueBinding="s.name" classNames="input-mini"}}
-                                      {{view Ember.TextField valueBinding="s.lat" classNames="input-mini middleinput"}}
-                                      {{view Ember.TextField valueBinding="s.lng" classNames="input-mini middleinput"}}
+                                      {{view Ember.TextField valueBinding="s.location.lat" classNames="input-mini middleinput"}}
+                                      {{view Ember.TextField valueBinding="s.location.lng" classNames="input-mini middleinput"}}
                                       <a href="#" {{bindAttr class="s.draggable::active :btn"}} type="button" {{action lock s}}
                                         data-toggle="tooltip" title="Enable or disable dragging">
                                           <i {{bindAttr class="s.draggable:icon-lock:icon-unlock"}} ></i>

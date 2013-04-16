@@ -43,23 +43,31 @@ App.IndexController = Ember.ObjectController.extend({
     supermarkets : Ember.A([
         App.Supermarket.create({
             name: 'A',
-            lat: 41.276081,
-            lng: -8.356861
+            location:{
+                lat: 41.276081,
+                lng: -8.356861
+            }
         }),
         App.Supermarket.create({
             name: 'B',
-            lat: 41.276081,
-            lng: -8.366861
+            location:{
+                lat: 41.276081,
+                lng: -8.366861
+            }
         }),
         App.Supermarket.create({
             name: 'C',
-            lat: 41.276081,
-            lng: -8.376861
+            location:{
+                lat: 41.276081,
+                lng: -8.376861
+            }
         }),
         App.Supermarket.create({
             name: 'D',
-            lat: 41.276081,
-            lng: -8.386861
+            location:{
+                lat: 41.276081,
+                lng: -8.386861
+            }
         })
     ]),
     remove: function(s){
@@ -73,9 +81,11 @@ App.IndexController = Ember.ObjectController.extend({
     },
     add: function(){
         this.get('supermarkets').pushObject(App.Supermarket.create({
-            lat: this.get('center.lat'),
-            lng: this.get('center.lng'),
-            name : "New Marker"
+            location : {
+                lat: this.get('center.lat'),
+                lng: this.get('center.lng')
+            },
+            name : 'New Marker'
         }));  
     },
     highlight: function(s){
