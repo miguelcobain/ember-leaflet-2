@@ -101,8 +101,8 @@ App.IndexController = Ember.ObjectController.extend({
         center.set('lat',s.get('lat'));
         center.set('lng',s.get('lng'));*/
         this.set('center',Ember.Object.create({
-            lat:s.get('lat'),
-            lng:s.get('lng')
+            lat:s.get('location.lat'),
+            lng:s.get('location.lng')
         }))
     }
 });
