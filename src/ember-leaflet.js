@@ -1,3 +1,28 @@
+/*
+ * Queue zoom transitions
+ */
+if (L.DomUtil.TRANSITION) {
+    L.Map.addInitHook(function() {
+        L.DomEvent.on(this._mapPane, L.DomUtil.TRANSITION_END, function() {
+            var zoom = this._zoomActions.shift();
+            if (zoom !== undefined) {
+                this.setZoom(zoom);
+            }
+        }, this);
+    });
+}
+
+L.Map.include(!L.DomUtil.TRANSITION ? {} : {
+    _zoomActions : [],
+    queueZoom : function(zoom) {
+        if (this._animatingZoom) {
+            this._zoomActions.push(zoom);
+        } else {
+            this.setZoom(zoom);
+        }
+    }
+});
+
 /**
  * Main View 
  */
@@ -28,8 +53,11 @@ Ember.LeafletView = Ember.View.extend({
 
         //console.log('zoomDidChange', 'zoomLevel to '+zoomLevel);
     }.observes('zoomLevel'),
-    //default center
     moving : false,
+    // should we try to setView on current location?
+    locate : true,
+    panOnLocate: true,
+    //default center
     center : Ember.Object.create({
         lat: 51.505,
         lng: -0.09
@@ -46,7 +74,7 @@ Ember.LeafletView = Ember.View.extend({
     
     // Real markers array
     markers : Ember.A(),
-    // Markers ArrayProxy to better control notifications and to allow 
+    // Markers ArrayProxy to better control notifications and to allow filtering in the future...
     markersProxy : Ember.ArrayProxy.create(),
     // Map that maps Ember objects to Leaflet marker objects
     leafletMarkers : Ember.Map.create(),
@@ -55,6 +83,10 @@ Ember.LeafletView = Ember.View.extend({
     lngPath:'lng',
     // Default overridable popup content property path
     popupPath:'popup',
+    // Default overridable highlight property path
+    highlightPath:'highlight',
+    // Default overridable draggable property path
+    draggablePath:'draggable',
     arrayWillChange : function(array, start, removeCount, addCount) {
         if (removeCount>0) {
             var leafletMarkers = this.get('leafletMarkers');
@@ -63,7 +95,8 @@ Ember.LeafletView = Ember.View.extend({
             removedObjects.forEach(function(object, index){
                 console.log(start+index, object);
                 var marker = leafletMarkers.get(object);
-                map.removeLayer(marker);
+                if(map)
+                    map.removeLayer(marker);
                 leafletMarkers.remove(object);
             });
         }
@@ -72,11 +105,16 @@ Ember.LeafletView = Ember.View.extend({
         if(addCount>0){
             var leafletMarkers = this.get('leafletMarkers');
             var map = this.get('map');
-            var latPath = this.get('latPath');var lngPath = this.get('lngPath');var popupPath = this.get('popupPath');
+            var latPath = this.get('latPath');var lngPath = this.get('lngPath');
+            var popupPath = this.get('popupPath');var highlightPath = this.get('highlightPath');
+            var draggablePath = this.get('draggablePath');
             
             var addedObjects = array.slice(start, start + addCount);
             addedObjects.forEach(function(object, index){
-                var marker = L.marker(new L.LatLng(object.get(latPath), object.get(lngPath)),{draggable:true});
+                var marker = L.marker(new L.LatLng(object.get(latPath), object.get(lngPath)),{
+                    icon: object.get(highlightPath) ? this.get('highlightIcon') : this.get('normalIcon'),
+                    draggable: object.get(draggablePath)
+                });
                 marker.on('drag', function(e) {
                     var latlng = e.target.getLatLng();
                     object.set(latPath,latlng.lat);
@@ -85,11 +123,21 @@ Ember.LeafletView = Ember.View.extend({
                 marker.bindPopup(object.get(popupPath));
                 marker.addTo(map);
                 leafletMarkers.set(object,marker);
+                // Register observers
                 object.addObserver(latPath, this, 'markersPositionDidChange');
                 object.addObserver(lngPath, this, 'markersPositionDidChange');
                 object.addObserver(popupPath, this, 'markersPopupDidChange');
-                object.addObserver('highlight', this, 'markersHighlightDidChange');
-                object.addObserver('draggable', this, 'markersDraggableDidChange');
+                object.addObserver(highlightPath, this, 'markersHighlightDidChange');
+                object.addObserver(draggablePath, this, 'markersDraggableDidChange');
+                
+                if(object.get(highlightPath)){
+                    
+                    map.setView(marker.getLatLng(), 14);
+                    //marker.openPopup();
+                    // setTimeout(function(){
+//                         
+                    // },500);
+                }
             }, this);
         }
     },
@@ -113,51 +161,46 @@ Ember.LeafletView = Ember.View.extend({
     markersHighlightDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
         var marker = leafletMarkers.get(sender);
-        if(sender.get('highlight'))
+        var highlightPath = this.get('highlightPath');
+        var map = this.get('map');
+        
+        var draggable = marker.dragging.enabled();
+        if(sender.get(highlightPath)){
             marker.setIcon(this.get('highlightIcon'));
-        else
+            map.setView(marker.getLatLng(), 14);
+            // setTimeout(function(){
+                // marker.openPopup();    
+            // },500);
+        }
+        else {
             marker.setIcon(this.get('normalIcon'));
+        }
+            
+        if(draggable)
+            marker.dragging.enable();
+        else
+            marker.dragging.disable();
     },
     markersDraggableDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
         var marker = leafletMarkers.get(sender);
-        if(sender.get('draggable'))
+        var draggablePath = this.get('draggablePath');
+        if(sender.get(draggablePath))
             marker.dragging.enable();
         else
             marker.dragging.disable();
     },
     init : function(){
         this._super();
-        var markersProxy = this.get('markersProxy');
-        markersProxy.addArrayObserver(this);
+        /*var markersProxy = this.get('markers');
+        markersProxy.addArrayObserver(this);*/
         //markersProxy.addObserver('@each.name', this, 'markersDidChange');
-        
+        this.set('markersProxy', Ember.ArrayProxy.create());
+        this.set('leafletMarkers', Ember.Map.create());
     },
     didInsertElement : function() {
-        /*
-         * Queue zoom transitions
-         */
-        if (L.DomUtil.TRANSITION) {
-            L.Map.addInitHook(function() {
-                L.DomEvent.on(this._mapPane, L.DomUtil.TRANSITION_END, function() {
-                    var zoom = this._zoomActions.shift();
-                    if (zoom !== undefined) {
-                        this.setZoom(zoom);
-                    }
-                }, this);
-            });
-        }
+        this._super();
 
-        L.Map.include(!L.DomUtil.TRANSITION ? {} : {
-            _zoomActions : [],
-            queueZoom : function(zoom) {
-                if (map._animatingZoom) {
-                    this._zoomActions.push(zoom);
-                } else {
-                    this.setZoom(zoom);
-                }
-            }
-        });
 
         var self = this;
         var zoomLevel = this.get('zoomLevel');
@@ -169,6 +212,16 @@ Ember.LeafletView = Ember.View.extend({
         L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             attribution : '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+        
+        /*L.zoomTMSLayer({
+            url : 'http://{s}.tile.cloudmade.com/b981a03c18ca40098c71cdaa433d50af/',
+            layername : '997/256',
+            serviceVersion : '',
+            attribution : 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+            tileMaxZoom : 18,
+            maxZoom : 20,
+            tms : false
+        }).addTo(map);*/
 
         map.on('move', function(e) {
             var newCenter = e.target.getCenter();
@@ -189,10 +242,39 @@ Ember.LeafletView = Ember.View.extend({
             self.set('zoomLevelValue', e.target.getZoom());
         });
 
-        window.map = map;
+        window.lmap = map; 
         // save map instance
         this.set('map', map);
+        
         var markersProxy = this.get('markersProxy');
+        markersProxy.addArrayObserver(this);
         markersProxy.set('content', this.get('markers'));
+    },
+    willDestroyElement : function(){
+        this._super();
+        var map = this.get('map');
+        map.off('locationfound');
+        map.off('locationerror');
+        map.off('move');
+        map.off('movestart');
+        map.off('moveend');
+        map.off('zoomend');
+        
+        var latPath = this.get('latPath');var lngPath = this.get('lngPath');
+            var popupPath = this.get('popupPath');var highlightPath = this.get('highlightPath');
+            var draggablePath = this.get('draggablePath');
+            
+        this.get('markersProxy').forEach(function(object){
+            object.removeObserver(latPath, this, 'markersPositionDidChange');
+            object.removeObserver(lngPath, this, 'markersPositionDidChange');
+            object.removeObserver(popupPath, this, 'markersPopupDidChange');
+            object.removeObserver(highlightPath, this, 'markersHighlightDidChange');
+            object.removeObserver(draggablePath, this, 'markersDraggableDidChange');
+        }, this);
+        
+        this.get('markersProxy').removeArrayObserver(this);
+
+        delete window.lmap;
+        this.set('map',null);
     }
 });
