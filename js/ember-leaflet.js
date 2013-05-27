@@ -111,18 +111,30 @@ Ember.LeafletView = Ember.View.extend({
             
             var addedObjects = array.slice(start, start + addCount);
             addedObjects.forEach(function(object, index){
-                var marker = L.marker(new L.LatLng(object.get(latPath), object.get(lngPath)),{
-                    icon: object.get(highlightPath) ? this.get('highlightIcon') : this.get('normalIcon'),
-                    draggable: object.get(draggablePath)
-                });
-                marker.on('drag', function(e) {
-                    var latlng = e.target.getLatLng();
-                    object.set(latPath,latlng.lat);
-                    object.set(lngPath,latlng.lng);
-                });
-                marker.bindPopup(object.get(popupPath));
-                marker.addTo(map);
-                leafletMarkers.set(object,marker);
+                if(object.get(latPath) && object.get(lngPath)){
+                    var marker = L.marker(new L.LatLng(object.get(latPath), object.get(lngPath)),{
+                        icon: object.get(highlightPath) ? this.get('highlightIcon') : this.get('normalIcon'),
+                        draggable: object.get(draggablePath)
+                    });
+                    marker.on('drag', function(e) {
+                        var latlng = e.target.getLatLng();
+                        object.set(latPath,latlng.lat);
+                        object.set(lngPath,latlng.lng);
+                    });
+                    marker.bindPopup(object.get(popupPath));
+                    marker.addTo(map);
+                    
+                    leafletMarkers.set(object,marker);
+                    
+                    if(object.get(highlightPath)){
+                    
+                    map.setView(marker.getLatLng(), 14);
+                        //marker.openPopup();
+                        // setTimeout(function(){
+    //                         
+                        // },500);
+                    }
+                }
                 // Register observers
                 object.addObserver(latPath, this, 'markersPositionDidChange');
                 object.addObserver(lngPath, this, 'markersPositionDidChange');
@@ -130,14 +142,7 @@ Ember.LeafletView = Ember.View.extend({
                 object.addObserver(highlightPath, this, 'markersHighlightDidChange');
                 object.addObserver(draggablePath, this, 'markersDraggableDidChange');
                 
-                if(object.get(highlightPath)){
-                    
-                    map.setView(marker.getLatLng(), 14);
-                    //marker.openPopup();
-                    // setTimeout(function(){
-//                         
-                    // },500);
-                }
+
             }, this);
         }
     },
@@ -145,14 +150,17 @@ Ember.LeafletView = Ember.View.extend({
         var leafletMarkers = this.get('leafletMarkers');
         var latPath = this.get('latPath');var lngPath = this.get('lngPath');
         var marker = leafletMarkers.get(sender);
-        marker.setLatLng([sender.get(latPath),sender.get(lngPath)]);
+        if(marker)
+            marker.setLatLng([sender.get(latPath),sender.get(lngPath)]);
     },
     markersPopupDidChange : function(sender, key){
         var leafletMarkers = this.get('leafletMarkers');
         var marker = leafletMarkers.get(sender);
         var popupPath = this.get('popupPath');
-        marker.closePopup();
-        marker.bindPopup(sender.get(popupPath));
+        if(marker){
+            marker.closePopup();
+            marker.bindPopup(sender.get(popupPath));
+        }
     },
     // Default normal icon
     normalIcon : new L.Icon.Default(),
@@ -163,6 +171,8 @@ Ember.LeafletView = Ember.View.extend({
         var marker = leafletMarkers.get(sender);
         var highlightPath = this.get('highlightPath');
         var map = this.get('map');
+        
+        if(!marker) return;
         
         var draggable = marker.dragging.enabled();
         if(sender.get(highlightPath)){
@@ -185,6 +195,9 @@ Ember.LeafletView = Ember.View.extend({
         var leafletMarkers = this.get('leafletMarkers');
         var marker = leafletMarkers.get(sender);
         var draggablePath = this.get('draggablePath');
+        
+        if(!marker) return;
+        
         if(sender.get(draggablePath))
             marker.dragging.enable();
         else
