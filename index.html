@@ -100,8 +100,7 @@
             {{view Ember.LeafletView
                 zoomLevelBinding="zoom"
                 centerBinding="center"
-                markersBinding="supermarkets"
-                latPath="location.lat" lngPath="location.lng" }}
+                markersBinding="supermarkets" }}
             <h3>Ember controls <small>Change the values and check the map above!</small></h3>
             <div class="row-fluid">
                 <div class="span6">
@@ -147,7 +146,7 @@
                                       {{view Ember.TextField valueBinding="s.location.lat" classNames="input-mini middleinput"}}
                                       {{view Ember.TextField valueBinding="s.location.lng" classNames="input-mini middleinput"}}
                                       <a href="#" {{bindAttr class="s.draggable::active :btn"}} type="button" {{action lock s}}
-                                        data-toggle="tooltip" title="Enable or disable dragging">
+                                        data-toggle="tooltip" title="Toggle dragging and highlight">
                                           <i {{bindAttr class="s.draggable:icon-lock:icon-unlock"}} ></i>
                                       </a>
                                       <a href="#" class="btn ttip" {{action centerMarker s}}
