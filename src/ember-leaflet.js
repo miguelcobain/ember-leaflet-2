@@ -23,6 +23,62 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
     }
 });
 
+/*
+ * Convenience Marker class.
+ * Inherit this class to have location, draggable and popup support out-of-the-box.
+ * This class expects properties with certain names. Name your properties accordingly, provide
+ * bindings or computed properties if you don't want to polute your objects.
+ *  
+ */
+Ember.LeafletMarker = Ember.Object.extend({
+    locationDidChange:function(){
+        var marker = this.get('marker');
+        var lat = this.get('location.lat');
+        var lng = this.get('location.lng');
+        
+        if (!marker)
+            return;
+            
+        if (lat && lng){
+            marker.setLatLng([lat,lng]);
+        }
+    }.observes('location.lat','location.lng','marker'),
+    draggableDidChange:function(){
+        var marker = this.get('marker');
+        var draggable = this.get('draggable');
+        if (!marker)
+            return;
+            
+        if (draggable){
+            marker.dragging.enable();
+        } else {
+            marker.dragging.disable();
+        }
+    }.observes('draggable','marker'),
+    popupDidChange:function(){
+        var marker = this.get('marker');
+        var popup = this.get('popup');
+        if (!marker)
+            return;
+            
+        if(popup){
+            marker.closePopup();
+            marker.bindPopup(popup);
+        }
+    }.observes('popup','marker'),
+    setupMarker:function(){
+        var marker = this.get('marker');
+        if (!marker)
+            return;
+        var self = this;
+        marker.on('drag', function(e) {
+            var latlng = e.target.getLatLng();
+            self.set('location.lat', latlng.lat);
+            self.set('location.lng', latlng.lng);
+        });
+    }.observes('marker')
+});
+
 /**
  * Main View
  */
