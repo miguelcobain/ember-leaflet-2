@@ -30,7 +30,36 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
  * bindings or computed properties if you don't want to polute your objects.
  *  
  */
-Ember.LeafletMarker = Ember.Object.extend({
+Ember.LeafletMarkerMixin = Ember.Mixin.create({
+    marker: Ember.computed(function() {
+        return L.marker([this.get('location.lat'),this.get('location.lng')]);
+    }),
+    /*
+     * Default icon.
+     * Override as a computed property to define the icon based on custom logic.
+     */
+    icon: new L.Icon.Default(),
+    iconChanged:function(){
+        var marker = this.get('marker');
+        var icon = this.get('icon');
+        if (!marker)
+            return;
+        
+        var draggable = marker.dragging.enabled();
+        marker.setIcon(icon);
+        if (draggable)
+            marker.dragging.enable();
+        else
+            marker.dragging.disable();
+    }.observes('icon','marker'),
+    zIndex:0,
+    zIndexChanged:function(){
+        var marker = this.get('marker');
+        var zIndex = this.get('zIndex');
+        
+        if(marker)
+            marker.setZIndexOffset(zIndex);
+    }.observes('zIndex','marker'),
     locationDidChange:function(){
         var marker = this.get('marker');
         var lat = this.get('location.lat');
@@ -46,15 +75,16 @@ Ember.LeafletMarker = Ember.Object.extend({
     draggableDidChange:function(){
         var marker = this.get('marker');
         var draggable = this.get('draggable');
-        if (!marker)
+        if (!marker || !marker.dragging)
             return;
             
         if (draggable){
+
             marker.dragging.enable();
         } else {
             marker.dragging.disable();
         }
-    }.observes('draggable','marker'),
+    }.observes('draggable','marker','map'),
     popupDidChange:function(){
         var marker = this.get('marker');
         var popup = this.get('popup');
@@ -76,7 +106,7 @@ Ember.LeafletMarker = Ember.Object.extend({
             self.set('location.lat', latlng.lat);
             self.set('location.lng', latlng.lng);
         });
-    }.observes('marker')
+    }.observes('marker','map')
 });
 
 /**
@@ -154,9 +184,9 @@ Ember.LeafletView = Ember.View.extend({
 
             var addedObjects = array.slice(start, start + addCount);
             addedObjects.forEach(function(object, index) {
-                var marker = this.createMarker(object);
+                var marker = object.get('marker');//this.createMarker(object);
                 marker.addTo(map);
-                object.set('marker', marker);
+                //object.set('marker', marker);
                 object.set('map', map);
                 leafletMarkers.set(object, marker);
 
