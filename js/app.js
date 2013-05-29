@@ -24,7 +24,7 @@ App.IndexView = Ember.View.extend({
  * Example of a custom marker behavior "Highlight".
  * Every other functionality is provided by its super class.
  */
-App.Supermarket = Ember.LeafletMarker.extend({
+App.Supermarket = Ember.Object.extend(Ember.LeafletMarkerMixin,{
     highlight : false,
     draggable : true,
     popupBinding : 'name',
@@ -38,7 +38,7 @@ App.Supermarket = Ember.LeafletMarker.extend({
         icon : 'flag',
         color : 'red'
     }),
-    highlightDidChange : function() {
+    highlightDidChange : function(){
         var marker = this.get('marker');
         var highlight = this.get('highlight');
         var map = this.get('map');
@@ -46,19 +46,13 @@ App.Supermarket = Ember.LeafletMarker.extend({
         if (!marker)
             return;
 
-        var draggable = marker.dragging.enabled();
         if (highlight) {
-            marker.setIcon(this.get('highlightIcon'));
+            this.set('icon',this.get('highlightIcon'));
             map.setView(marker.getLatLng(), 14);
         } else {
-            marker.setIcon(this.get('normalIcon'));
+            this.set('icon',this.get('normalIcon'));
         }
-
-        if (draggable)
-            marker.dragging.enable();
-        else
-            marker.dragging.disable();
-    }.observes('highlight', 'marker')
+    }.observes('highlight', 'marker', 'map')
 });
 
 // Example Controller
