@@ -90,6 +90,11 @@ input.middleinput{
     border-radius: 0 0 0 0;
     border-left: none;
 }
+
+.middle {
+    border-radius: 0 0 0 0 !important;
+}
+
 div.input-append .active{
     border-color: #cccccc;
 }

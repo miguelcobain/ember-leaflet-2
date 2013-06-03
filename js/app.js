@@ -118,5 +118,45 @@ App.IndexController = Ember.ObjectController.extend({
             lat : s.get('location.lat'),
             lng : s.get('location.lng')
         }))
+    },
+    icons:[
+        {
+            label: 'Supermarket',
+            icon: L.AwesomeMarkers.icon({
+                icon : 'shopping-cart',
+                color : 'blue'
+            }),
+        },
+        {
+            label: 'Rocket!',
+            icon:L.AwesomeMarkers.icon({
+                icon : 'rocket',
+                color : 'orange'
+            })
+        },
+        {
+            label: 'Fire! Fire!',
+            icon:L.AwesomeMarkers.icon({
+                icon : 'fire-extinguisher',
+                color : 'red'
+            })
+        },
+        {
+            label: 'Let\'s play!',
+            icon:L.AwesomeMarkers.icon({
+                icon : 'gamepad',
+                color : 'cadetblue'
+            })
+        },
+        {
+            label: 'Ember',
+            icon:L.AwesomeMarkers.icon({
+                icon : 'fire',
+                color : 'green'
+            })
+        }
+    ],
+    changeIcon : function(s, icon){
+        s.set('icon',icon);
     }
 });

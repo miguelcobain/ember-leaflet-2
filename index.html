@@ -4,7 +4,7 @@
         <meta charset=utf-8 />
         <title>Ember Leaflet</title>
         <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
-        <link href="//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css" rel="stylesheet">
+        <link href="//netdna.bootstrapcdn.com/font-awesome/3.1.1/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
         <!--[if lte IE 8]>
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
@@ -103,7 +103,7 @@
                 markersBinding="supermarkets" }}
             <h3>Ember controls <small>Change the values and check the map above!</small></h3>
             <div class="row-fluid">
-                <div class="span6">
+                <div class="span5">
                     <div class="form-horizontal">
                         <div class="control-group">
                             <label class="control-label" for="inputZoom">Zoom</label>
@@ -135,7 +135,7 @@
                         
                     </div>
                 </div>
-                <div class="span6">
+                <div class="span7">
                     <div class="form">
                         <div class="control-group">
                             <label class="control-label" for="inputS">Markers</label>
@@ -145,6 +145,19 @@
                                       {{view Ember.TextField valueBinding="s.name" classNames="input-mini"}}
                                       {{view Ember.TextField valueBinding="s.location.lat" classNames="input-mini middleinput"}}
                                       {{view Ember.TextField valueBinding="s.location.lng" classNames="input-mini middleinput"}}
+                                      <div class="btn-group">
+                                        <button class="btn dropdown-toggle middle" data-toggle="dropdown">
+                                            Icon
+                                            <span class="caret"></span>
+                                        </button>
+                                       
+                                        <ul class="dropdown-menu">
+                                            {{#each i in icons}}
+                                                <li><a href="#" {{action changeIcon s i.icon}}>{{i.label}}</a></li>
+                                            {{/each}}
+                                        </ul>
+                                        
+                                    </div>
                                       <a href="#" {{bindAttr class="s.draggable::active :btn"}} type="button" {{action lock s}}
                                         data-toggle="tooltip" title="Toggle dragging and highlight">
                                           <i {{bindAttr class="s.draggable:icon-lock:icon-unlock"}} ></i>

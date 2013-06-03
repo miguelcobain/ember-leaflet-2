@@ -23,17 +23,120 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
     }
 });
 
+Ember.LeafletPathMixin = Ember.Mixin.create({
+    popupDidChange:function(){
+        var path = this.get('path');
+        var popup = this.get('popup');
+        if (!path)
+            return;
+            
+        if(popup){
+            path.closePopup();
+            path.bindPopup(popup);
+        }
+    }.observes('popup'),
+    strokeDidChange:function(){
+        var stroke = this.get('stroke');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({stroke: stroke});
+    }.observes('stroke'),
+    colorDidChange : function(){
+        var color = this.get('color');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({color: color});
+    }.observes('color'),
+    weightDidChange : function(){
+        var weight = this.get('weight');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({weight: weight});
+    }.observes('weight'),
+    opacityDidChange : function(){
+        var opacity = this.get('opacity');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({opacity: opacity});
+    }.observes('opacity'),
+    fillDidChange : function(){
+        var fill = this.get('fill');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({fill: fill});
+    }.observes('fill'),
+    fillColorDidChange : function(){
+        var fillColor = this.get('fillColor');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({fillColor: fillColor});
+    }.observes('fillColor'),
+    fillOpacityDidChange : function(){
+        var fillOpacity = this.get('fillOpacity');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({fillOpacity: fillOpacity});
+    }.observes('fillOpacity'),
+    dashArrayDidChange : function(){
+        var dashArray = this.get('dashArray');
+        var path = this.get('path');
+        if(!path)
+            return;
+        
+        path.setStyle({dashArray: dashArray});
+    }.observes('dashArray')
+});
+
+Ember.LeafletCircleMarkerMixin = Ember.Mixin.create({
+    path:function(){
+        var circleMarker = L.circleMarker([this.get('location.lat'),this.get('location.lng')]);
+        return circleMarker;
+    }.property()
+});
+
+Ember.LeafletPolylineMixin = Ember.Mixin.create({
+    path:function(){
+        var locations = [];
+        this.get('locations').forEach(function(l){
+            locations.push(L.latLng(l.get('lat'),l.get('lng')));
+        });
+        var polyline = L.polyline(locations);
+        return polyline;
+    }.property(),
+});
+
 /*
- * Convenience Marker class.
+ * Convenience Marker mixin.
  * Inherit this class to have location, draggable and popup support out-of-the-box.
  * This class expects properties with certain names. Name your properties accordingly, provide
  * bindings or computed properties if you don't want to polute your objects.
  *  
  */
 Ember.LeafletMarkerMixin = Ember.Mixin.create({
-    marker: Ember.computed(function() {
-        return L.marker([this.get('location.lat'),this.get('location.lng')]);
-    }),
+    marker: function() {
+        var marker = L.marker([this.get('location.lat'),this.get('location.lng')]);
+        var self = this;
+        marker.on('drag', function(e) {
+            var latlng = e.target.getLatLng();
+            self.set('location.lat', latlng.lat);
+            self.set('location.lng', latlng.lng);
+        });
+        return marker;
+    }.property(),
     /*
      * Default icon.
      * Override as a computed property to define the icon based on custom logic.
@@ -71,7 +174,7 @@ Ember.LeafletMarkerMixin = Ember.Mixin.create({
         if (lat && lng){
             marker.setLatLng([lat,lng]);
         }
-    }.observes('location.lat','location.lng','marker'),
+    }.observes('location','marker'),
     draggableDidChange:function(){
         var marker = this.get('marker');
         var draggable = this.get('draggable');
@@ -95,18 +198,7 @@ Ember.LeafletMarkerMixin = Ember.Mixin.create({
             marker.closePopup();
             marker.bindPopup(popup);
         }
-    }.observes('popup','marker'),
-    setupMarker:function(){
-        var marker = this.get('marker');
-        if (!marker)
-            return;
-        var self = this;
-        marker.on('drag', function(e) {
-            var latlng = e.target.getLatLng();
-            self.set('location.lat', latlng.lat);
-            self.set('location.lng', latlng.lng);
-        });
-    }.observes('marker','map')
+    }.observes('popup','marker')
 });
 
 /**
@@ -163,7 +255,7 @@ Ember.LeafletView = Ember.View.extend({
     markersProxy : Ember.ArrayProxy.create(),
     // Map that maps Ember objects to Leaflet marker objects
     leafletMarkers : Ember.Map.create(),
-    arrayWillChange : function(array, start, removeCount, addCount) {
+    markersWillChange : function(array, start, removeCount, addCount) {
         if (removeCount > 0) {
             var leafletMarkers = this.get('leafletMarkers');
             var map = this.get('map');
@@ -177,7 +269,7 @@ Ember.LeafletView = Ember.View.extend({
             });
         }
     },
-    arrayDidChange : function(array, start, removeCount, addCount) {
+    markersDidChange : function(array, start, removeCount, addCount) {
         if (addCount > 0) {
             var leafletMarkers = this.get('leafletMarkers');
             var map = this.get('map');
@@ -191,6 +283,32 @@ Ember.LeafletView = Ember.View.extend({
                 leafletMarkers.set(object, marker);
 
             }, this);
+        }
+    },
+    paths : Ember.A(),
+    pathsProxy : Ember.ArrayProxy.create(),
+    pathsWillChange : function(array, start, removeCount, addCount){
+        if (removeCount > 0) {
+            var map = this.get('map');
+            var removedObjects = array.slice(start, start + removeCount);
+            removedObjects.forEach(function(object, index) {
+                var path = object.get('path');
+                if(path)
+                    map.removeLayer(path);
+            },this);
+            console.log('pathsWillChange');
+        }
+    },
+    pathsDidChange : function(array, start, removeCount, addCount){
+        if (addCount > 0) {
+            var map = this.get('map');
+            var addedObjects = array.slice(start, start + addCount);
+            addedObjects.forEach(function(object, index) {
+                var path = object.get('path');
+                if(path)
+                    path.addTo(map);
+            },this);
+            console.log('pathsDidChange');
         }
     },
     init : function() {
@@ -230,8 +348,18 @@ Ember.LeafletView = Ember.View.extend({
         this.set('map', map);
 
         var markersProxy = this.get('markersProxy');
-        markersProxy.addArrayObserver(this);
+        markersProxy.addArrayObserver(this,{
+            willChange:'markersWillChange',
+            didChange:'markersDidChange'
+        });
         markersProxy.set('content', this.get('markers'));
+        
+        var pathsProxy = this.get('pathsProxy');
+        pathsProxy.addArrayObserver(this,{
+            willChange:'pathsWillChange',
+            didChange:'pathsDidChange'
+        });
+        pathsProxy.set('content', this.get('paths'));
     },
     /*
      * Overidable hook to create the map instance. Useful for custom plugin logic.
