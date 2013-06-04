@@ -22,7 +22,10 @@ L.Map.include(!L.DomUtil.TRANSITION ? {} : {
         }
     }
 });
-
+/*
+ * Path mixin.
+ *  
+ */
 Ember.LeafletPathMixin = Ember.Mixin.create({
     popupDidChange:function(){
         var path = this.get('path');
@@ -99,6 +102,10 @@ Ember.LeafletPathMixin = Ember.Mixin.create({
     }.observes('dashArray','path')
 });
 
+/*
+ * Circle mixin.
+ *  
+ */
 Ember.LeafletCircleMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
     isCircle:true,
     path:function(){
@@ -124,6 +131,10 @@ Ember.LeafletCircleMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
     }.observes('radius','path')
 });
 
+/*
+ * Polyline mixin.
+ *  
+ */
 Ember.LeafletPolylineMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
     isPolyline:true,
     path:function(){
@@ -158,8 +169,8 @@ Ember.LeafletPolylineMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
 });
 
 /*
- * Convenience Marker mixin.
- * Inherit this class to have location, draggable and popup support out-of-the-box.
+ * Marker mixin.
+ * Use this mixin to have location, icon, z-index, draggable and popup support out-of-the-box.
  * This class expects properties with certain names. Name your properties accordingly, provide
  * bindings or computed properties if you don't want to polute your objects.
  *  
@@ -411,18 +422,6 @@ Ember.LeafletView = Ember.View.extend({
             attribution : '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
         return map;
-    },
-    /*
-     * Overridable hook to create marker instances.
-     * Override this hook to create custom markers, possibly depending on its data.
-     * Ex: Custom icons, click handlers, etc. This is the default (simple) implementation.
-     *
-     * @param marker object/variable
-     * @return Leaflet marker instance
-     */
-    createMarker : function(data) {
-        var marker = L.marker(new L.LatLng(data.get('location.lat'), data.get('location.lng')));
-        return marker;
     },
     willDestroyElement : function() {
         this._super();
