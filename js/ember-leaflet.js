@@ -34,7 +34,8 @@ Ember.LeafletPathMixin = Ember.Mixin.create({
             path.closePopup();
             path.bindPopup(popup);
         }
-    }.observes('popup'),
+    }.observes('popup','path'),
+    stroke: true,
     strokeDidChange:function(){
         var stroke = this.get('stroke');
         var path = this.get('path');
@@ -42,81 +43,118 @@ Ember.LeafletPathMixin = Ember.Mixin.create({
             return;
         
         path.setStyle({stroke: stroke});
-    }.observes('stroke'),
+    }.observes('stroke','path'),
+    color:'#03f',
     colorDidChange : function(){
         var color = this.get('color');
         var path = this.get('path');
-        if(!path)
+        if(!path || !color)
             return;
         
         path.setStyle({color: color});
-    }.observes('color'),
+    }.observes('color','path'),
+    weight:5,
     weightDidChange : function(){
         var weight = this.get('weight');
         var path = this.get('path');
-        if(!path)
+        if(!path || !weight)
             return;
         
         path.setStyle({weight: weight});
-    }.observes('weight'),
+    }.observes('weight','path'),
+    opacity:0.5,
     opacityDidChange : function(){
         var opacity = this.get('opacity');
         var path = this.get('path');
-        if(!path)
+        if(!path || !opacity)
             return;
         
         path.setStyle({opacity: opacity});
-    }.observes('opacity'),
-    fillDidChange : function(){
-        var fill = this.get('fill');
-        var path = this.get('path');
-        if(!path)
-            return;
-        
-        path.setStyle({fill: fill});
-    }.observes('fill'),
+    }.observes('opacity','path'),
     fillColorDidChange : function(){
         var fillColor = this.get('fillColor');
         var path = this.get('path');
-        if(!path)
+        if(!path || !fillColor)
             return;
         
         path.setStyle({fillColor: fillColor});
-    }.observes('fillColor'),
+    }.observes('fillColor','path'),
+    fillOpacity:0.2,
     fillOpacityDidChange : function(){
         var fillOpacity = this.get('fillOpacity');
         var path = this.get('path');
-        if(!path)
+        if(!path || !fillOpacity)
             return;
         
         path.setStyle({fillOpacity: fillOpacity});
-    }.observes('fillOpacity'),
+    }.observes('fillOpacity','path'),
+    dashArray:null,
     dashArrayDidChange : function(){
         var dashArray = this.get('dashArray');
         var path = this.get('path');
-        if(!path)
+        if(!path || !dashArray)
             return;
         
         path.setStyle({dashArray: dashArray});
-    }.observes('dashArray')
+    }.observes('dashArray','path')
 });
 
-Ember.LeafletCircleMarkerMixin = Ember.Mixin.create({
+Ember.LeafletCircleMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
+    isCircle:true,
     path:function(){
-        var circleMarker = L.circleMarker([this.get('location.lat'),this.get('location.lng')]);
-        return circleMarker;
-    }.property()
+        var circle = L.circle([this.get('location.lat'),this.get('location.lng')]);
+        this.set('path',circle);
+        return circle;
+    }.property(),
+    locationDidChange:function(){
+        var circle = this.get('path');
+        if (!circle)
+            return;
+            
+        circle.setLatLng([this.get('location.lat'),this.get('location.lng')]);
+    }.observes('location.lat','location.lng','path'),
+    radius:10,
+    radiusDidChange:function(){
+        var radius = this.get('radius');
+        var circle = this.get('path');
+        if(!circle || !radius)
+            return;
+        
+        circle.setRadius(radius);
+    }.observes('radius','path')
 });
 
-Ember.LeafletPolylineMixin = Ember.Mixin.create({
+Ember.LeafletPolylineMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
+    isPolyline:true,
     path:function(){
         var locations = [];
         this.get('locations').forEach(function(l){
             locations.push(L.latLng(l.get('lat'),l.get('lng')));
         });
         var polyline = L.polyline(locations);
+        this.set('path',polyline);
         return polyline;
     }.property(),
+    locationsDidChange:function(){
+        var polyline = this.get('path');
+        if (!polyline)
+            return;
+            
+        var locations = [];
+        this.get('locations').forEach(function(l){
+            locations.push(L.latLng(l.get('lat'),l.get('lng')));
+        });
+        polyline.setLatLngs(locations);
+    }.observes('locations.@each.lat','locations.@each.lng','path'),
+    smoothFactor:1.0,
+    smoothFactorDidChange : function(){
+        var smoothFactor = this.get('smoothFactor');
+        var path = this.get('path');
+        if(!path || !smoothFactor)
+            return;
+        
+        path.setStyle({smoothFactor: smoothFactor});
+    }.observes('smoothFactor','path'),
 });
 
 /*
@@ -135,6 +173,7 @@ Ember.LeafletMarkerMixin = Ember.Mixin.create({
             self.set('location.lat', latlng.lat);
             self.set('location.lng', latlng.lng);
         });
+        this.set('marker',marker);
         return marker;
     }.property(),
     /*
@@ -145,7 +184,7 @@ Ember.LeafletMarkerMixin = Ember.Mixin.create({
     iconChanged:function(){
         var marker = this.get('marker');
         var icon = this.get('icon');
-        if (!marker)
+        if (!marker || !marker.dragging)
             return;
         
         var draggable = marker.dragging.enabled();
@@ -154,7 +193,7 @@ Ember.LeafletMarkerMixin = Ember.Mixin.create({
             marker.dragging.enable();
         else
             marker.dragging.disable();
-    }.observes('icon','marker'),
+    }.observes('icon','marker','map'),
     zIndex:0,
     zIndexChanged:function(){
         var marker = this.get('marker');
@@ -296,7 +335,6 @@ Ember.LeafletView = Ember.View.extend({
                 if(path)
                     map.removeLayer(path);
             },this);
-            console.log('pathsWillChange');
         }
     },
     pathsDidChange : function(array, start, removeCount, addCount){
@@ -308,7 +346,6 @@ Ember.LeafletView = Ember.View.extend({
                 if(path)
                     path.addTo(map);
             },this);
-            console.log('pathsDidChange');
         }
     },
     init : function() {

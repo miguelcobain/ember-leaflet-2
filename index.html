@@ -100,7 +100,8 @@
             {{view Ember.LeafletView
                 zoomLevelBinding="zoom"
                 centerBinding="center"
-                markersBinding="supermarkets" }}
+                markersBinding="supermarkets"
+                pathsBinding="paths" }}
             <h3>Ember controls <small>Change the values and check the map above!</small></h3>
             <div class="row-fluid">
                 <div class="span5">
@@ -142,9 +143,9 @@
                             {{#each s in supermarkets}}
                                 <div class="controls">
                                     <div class="input-append">
-                                      {{view Ember.TextField valueBinding="s.name" classNames="input-mini"}}
-                                      {{view Ember.TextField valueBinding="s.location.lat" classNames="input-mini middleinput"}}
-                                      {{view Ember.TextField valueBinding="s.location.lng" classNames="input-mini middleinput"}}
+                                      {{view Ember.TextField valueBinding="s.name" classNames="input-mini" data-toggle="tooltip" title="Popup binding"}}
+                                      {{view Ember.TextField valueBinding="s.location.lat" classNames="input-mini middleinput" data-toggle="tooltip" title="Latitude binding"}}
+                                      {{view Ember.TextField valueBinding="s.location.lng" classNames="input-mini middleinput" data-toggle="tooltip" title="Longitude binding"}}
                                       <div class="btn-group">
                                         <button class="btn dropdown-toggle middle" data-toggle="dropdown">
                                             Icon
@@ -186,12 +187,97 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <h3>Paths <small>Change the values and check the map above!</small></h3>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="form">
+                    <div class="control-group">
+                            {{#each p in paths}}
+                                <div class="controls">
+                                    <div class="input-append">
+                                      {{view Ember.TextField valueBinding="p.label" classNames="input-mini" data-toggle="tooltip" title="Popup binding"}}
+                                      {{view Ember.TextField valueBinding="p.weight" classNames="input-mini middleinput" data-toggle="tooltip" title="Stroke width in pixels"}}
+                                      {{view Ember.TextField valueBinding="p.opacity" classNames="input-mini middleinput" data-toggle="tooltip" title="Opacity binding"}}
+                                      <div class="btn-group">
+                                        <button class="btn dropdown-toggle middle" data-toggle="dropdown">
+                                            Color
+                                            <span class="caret"></span>
+                                        </button>
+                                       
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" {{action changeColor p 'red'}}>Red</a></li>
+                                            <li><a href="#" {{action changeColor p 'blue'}}>Blue</a></li>
+                                            <li><a href="#" {{action changeColor p 'yellow'}}>Yellow</a></li>
+                                            <li><a href="#" {{action changeColor p 'green'}}>Green</a></li>
+                                        </ul>
+                                        
+                                    </div>
+                                    {{#if p.isPolyline}}
+                                      {{#each l in p.locations}}
+                                        {{view Ember.TextField valueBinding="l.lat" classNames="input-mini middleinput" data-toggle="tooltip" title="Polyline vertex latitude"}}
+                                        {{view Ember.TextField valueBinding="l.lng" classNames="input-mini middleinput" data-toggle="tooltip" title="Polyline vertex longitude"}}
+                                      {{/each}}
+                                    {{/if}}
+                                    {{#if p.isCircle}}
+                                        {{view Ember.TextField valueBinding="p.radius" classNames="input-mini middleinput" data-toggle="tooltip" title="Circle Radius binding in meters"}}
+                                        <div class="btn-group">
+                                        <button class="btn dropdown-toggle middle" data-toggle="dropdown">
+                                            Fill Color
+                                            <span class="caret"></span>
+                                        </button>
+                                       
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" {{action changeFillColor p 'red'}}>Red</a></li>
+                                            <li><a href="#" {{action changeFillColor p 'blue'}}>Blue</a></li>
+                                            <li><a href="#" {{action changeFillColor p 'yellow'}}>Yellow</a></li>
+                                            <li><a href="#" {{action changeFillColor p 'green'}}>Green</a></li>
+                                        </ul>
+                                        
+                                    </div>
+                                    {{/if}}
+                                      <a href="#" class="btn ttip" {{action centerPath p}}
+                                        data-toggle="tooltip" title="Center map on this path">
+                                          <i  class="icon-screenshot"></i>
+                                      </a>
+                                      <button class="btn btn-danger" type="button"{{action removePath p}}
+                                        data-toggle="tooltip" title="Delete polyline"><i  class="icon-remove icon-white"></i></button>
+                                    </div>
+                                </div>
+                            {{else}}
+                                <div class="controls">
+                                    <div class="alert alert-info">
+                                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                        No polylines.
+                                    </div
+                                </div>
+                            {{/each}}
+                            <div class="controls">
+                                <div class="btn-group">
+                                        <button class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                                            <i class="icon-plus icon-white"></i> Add
+                                            <span class="caret"></span>
+                                        </button>
+                                       
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" {{action addPipe}}>Polyline</a></li>
+                                            <li><a href="#" {{action addValve}}>Circle</a></li>
+                                        </ul>
+                                        
+                                    </div>
+                                <small class="muted">The new path will appear at the current center of the map.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         </script>
 
         <script src="js/libs/jquery-1.9.1.js"></script>
         <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
-        <script src="js/libs/handlebars-1.0.0-rc.3.js"></script>
-        <script src="js/libs/ember-1.0.0-rc.2.js"></script>
+        <script src="js/libs/handlebars-1.0.0-rc.4.js"></script>
+        <script src="js/libs/ember-1.0.0-rc.5.js"></script>
         <script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
         <script src="js/leaflet.awesome-markers.min.js"></script>
         <script src="js/ember-leaflet.js"></script>
