@@ -132,6 +132,34 @@ Ember.LeafletCircleMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
 });
 
 /*
+ * Rectangle mixin.
+ *
+ */
+Ember.LeafletRectangleMixin = Ember.Mixin.create(Ember.LeafletPathMixin, {
+  isRectangle:true,
+  path:function(){
+    var bounds = [];
+    this.get('bounds').forEach(function(l){
+      bounds.push(L.latLng(l.get('lat'),l.get('lng')));
+    });
+    var rectangle = L.rectangle(L.latLngBounds(bounds));
+    this.set('path',rectangle);
+    return rectangle;
+  }.property(),
+  boundsDidChange:function(){
+    var rectangle = this.get('path');
+    if (!rectangle)
+      return;
+      
+    var bounds = [];
+    this.get('bounds').forEach(function(l){
+      bounds.push(L.latLng(l.get('lat'),l.get('lng')));
+    });
+    rectangle.setBounds(L.latLngBounds(bounds));
+  }.observes('bounds.@each.lat','bounds.@each.lng')
+});
+
+/*
  * Polyline mixin.
  *  
  */
