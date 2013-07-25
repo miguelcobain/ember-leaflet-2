@@ -197,6 +197,23 @@ Ember.LeafletPolylineMixin = Ember.Mixin.create(Ember.LeafletPathMixin,{
 });
 
 /*
+ * Polygon mixin.
+ *
+ */
+Ember.LeafletPolygonMixin = Ember.Mixin.create(Ember.LeafletPolylineMixin, {
+  isPolygon: true,
+  path:function(){
+    var locations = [];
+    this.get('locations').forEach(function(l){
+      locations.push(L.latLng(l.get('lat'),l.get('lng')));
+    });
+    var polygon = L.polygon(locations);
+    this.set('path',polygon);
+    return polygon;
+  }.property(),
+});
+
+/*
  * Marker mixin.
  * Use this mixin to have location, icon, z-index, draggable and popup support out-of-the-box.
  * This class expects properties with certain names. Name your properties accordingly, provide
